@@ -39,24 +39,109 @@
         };
     };
 
+    /*                KEY POSITIONS
+     ╭────────────────────╮ ╭────────────────────╮
+     │  0   1   2   3   4 │ │  5   6   7   8   9 │
+     │ 10  11  12  13  14 │ │ 15  16  17  18  19 │
+     │ 20  21  22  23  24 │ │ 25  26  27  28  29 │
+     ╰───────╮ 30  31  32 │ │ 33  34  35╭────────╯
+             ╰────────────╯ ╰───────────╯            */
+
+    combos {
+        compatible = "zmk,combos";
+
+        // J + K = ESC
+        jk_esc {
+            timeout-ms = <50>;
+            key-positions = <16 17>;
+            bindings = <&kp ESC>;
+        };
+
+        // S + D = One-shot Right Shift
+        sd_osm_rshift {
+            timeout-ms = <50>;
+            key-positions = <11 12>;
+            bindings = <&sk RSHFT>;
+        };
+
+        // Bracket combos - opening
+        combo_lparen {
+            timeout-ms = <50>;
+            key-positions = <3 4>;
+            bindings = <&kp LPAR>;
+        };
+        combo_lbkt {
+            timeout-ms = <50>;
+            key-positions = <13 14>;
+            bindings = <&kp LBKT>;
+        };
+        combo_lbrc {
+            timeout-ms = <50>;
+            key-positions = <23 24>;
+            bindings = <&kp LBRC>;
+        };
+
+        // Bracket combos - closing
+        combo_rparen {
+            timeout-ms = <50>;
+            key-positions = <5 6>;
+            bindings = <&kp RPAR>;
+        };
+        combo_rbkt {
+            timeout-ms = <50>;
+            key-positions = <15 16>;
+            bindings = <&kp RBKT>;
+        };
+        combo_rbrc {
+            timeout-ms = <50>;
+            key-positions = <25 26>;
+            bindings = <&kp RBRC>;
+        };
+
+        // L + ; = '
+        combo_sqt {
+            timeout-ms = <50>;
+            key-positions = <18 19>;
+            bindings = <&kp SQT>;
+        };
+    };
+
+    macros {
+        // Ctrl+Shift+Tab (browser tab back)
+        lcs_tab: lcs_tab {
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            bindings = <&macro_press &kp LCTRL &kp LSHFT>,
+                       <&macro_tap &kp TAB>,
+                       <&macro_release &kp LSHFT &kp LCTRL>;
+        };
+
+        // Screenshot (Shift+Gui+4)
+        screenshot: screenshot {
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            bindings = <&kp LG(LS(N4))>;
+        };
+    };
+
     keymap {
         compatible = "zmk,keymap";
 
         default_layer {
             bindings = <
                 &kp Q        &kp W       &kp E        &kp R       &kp T        &kp Y        &kp U       &kp I            &kp O         &kp P
-                &kp A        &kp S       &kp D        &kp F       &kp G        &kp H        &kp J       &kp K            &kp L         &kp SEMI
-                &hml LSHFT Z  &hml LALT X  &hml LCTRL C  &hml LGUI V  &kp B    &kp N        &hmr RGUI M  &hmr RCTRL COMMA  &hmr RALT DOT  &hmr RSHFT SLASH
-                                         &lt 2 TAB    &kp LSHFT   &lt 1 BSPC   &lt 3 ENTER  &lt 2 SPACE &kp RALT
+                &hml LSHFT A &hml LALT S &hml LCTRL D &hml LGUI F &kp G  &kp H &hmr RGUI J  &hmr RCTRL K &hmr RALT L &hrm RSHFT SEMI
+                &kp Z  &kp X  &kp C  &kp V  &kp B    &kp N        &kp M  &kp COMMA  &kp DOT  &kp SLASH
+                                         &lt 2 BSPC    &kp LSHFT   &lt 1 TAB   &lt 3 ENTER  &lt 2 SPACE &kp RALT
             >;
         };
 
         symbols_layer {
             bindings = <
-                &kp EXCL  &kp AT    &kp HASH  &kp DLLR  &kp PRCNT &kp N7    &kp N8    &kp N9    &kp N9    &kp N0
-                &kp MINUS &kp EQUAL &kp LBKT  &kp RBKT  &kp BSLH  &kp N4    &kp N5    &kp N6    &kp DOT   &kp SLASH
-                &trans    &trans    &trans    &trans    &trans    &kp N1    &kp N2    &kp N3    &trans    &trans
-                                    &trans    &trans    &trans    &trans    &kp N0    &trans
+                &kp EXCL  &kp AT    &kp STAR  &kp GRAVE  &kp TILDE &kp N7    &kp N8    &kp N9    &kp PLUS    &trans
+                &kp HASH &kp SQT &kp DQT  &kp MINUS  &kp EQUAL  &kp N4    &kp N5    &kp N6    &kp MINUS   &kp COLON
+                &kp UNDER    &kp DLLR    &kp PRCNT    &kp CARET    &kp AMPS    &kp N1    &kp N2    &kp N3    &kp BSLH    &trans
+                                    &trans    &trans    &trans    &trans    &kp N0    &kp DOT
             >;
         };
 

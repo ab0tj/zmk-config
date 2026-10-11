@@ -6,9 +6,35 @@ This repository contains configuration, custom shield files, and keymaps for all
 
 Firmware is built via Github Actions, and can be downloaded via the artifacts. This avoids needing to set up a local toolchain.
 
-## Building Locally
+## Building Locally (Docker)
 
-To build the firmware locally for ease of development, you'll need to set up the ZMK development environment. Follow the [ZMK Setup Guide](https://zmk.dev/docs/development/local-toolchain/setup/native) to get started.
+No local toolchain required. `bin/build.sh` runs the same steps as the GitHub
+Actions workflow inside the official ZMK toolchain container
+(`zmkfirmware/zmk-build-arm:stable`), which is the same image the reusable
+`build-user-config.yml` workflow uses:
+
+```bash
+bin/build.sh          # nice_nano + dabao, as configured in build.yaml
+bin/build.sh -p       # pristine (clean) build
+```
+
+Override the target for other boards/shields, e.g.:
+
+```bash
+BOARD=nice_nano SHIELD=dabao bin/build.sh
+```
+
+A thin Makefile wrapper is also available: `make`, `make pristine` (clean
+build), `make SHIELD=other BOARD=other`, `make clean`.
+
+Firmware is written to `./build/<artifact-name>.uf2`. The first run clones
+`zmk`, Zephyr and the modules into `~/.cache/zmk-build` (a few GB); later
+builds reuse that workspace and only rebuild what changed.
+
+## Building Locally (Native Toolchain)
+
+Alternatively, to build without Docker you'll need to set up the ZMK
+development environment. Follow the [ZMK Setup Guide](https://zmk.dev/docs/development/local-toolchain/setup/native) to get started.
 
 ```bash
 source ~/zephyrproject/.venv/bin/activate
@@ -39,5 +65,9 @@ Replace `<board>` with the name of the board (e.g., `nice_nano`) and `<shield>` 
 For the nice!nano, simply double tap the reset button to put it into bootloader mode, then copy the .uf2 file from the build directory to the mounted drive.
 
 ```sh
+# Docker build output
+cp ./build/dabao-nice_nano-zmk.uf2 /media/$USER/NICENANO/
+
+# Native toolchain build output
 cp ~/zmk/app/build/zephyr/zmk.uf2 /media/$USER/NICENANO/
 ```

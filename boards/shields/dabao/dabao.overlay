@@ -5,11 +5,21 @@
 #include <input/processors.dtsi>
 #include <zephyr/dt-bindings/input/input-event-codes.h>
 #include "dabao_trackpoint.dtsi"
+#include "dabao-layouts.dtsi"
+
+/* The physical layout carries the Studio-visible key geometry and reuses the
+ * matrix transform, which stays defined in &{/} below. */
+&dabao_physical_layout {
+    transform = <&default_transform>;
+};
 
 &{/} {
     chosen {
         zmk,kscan = &kscan_composite;
-        zmk,matrix-transform = &default_transform;
+        /* A chosen zmk,matrix-transform would make ZMK ignore the physical
+         * layouts and fail the ZMK_STUDIO build assertion, so only the
+         * physical layout is chosen here. */
+        zmk,physical-layout = &dabao_physical_layout;
     };
 
     /* Auto mouse layer. Activates keymap layer 4 while the trackpoint is

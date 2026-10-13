@@ -3,6 +3,7 @@
 #   make                 # build nice_nano + dabao
 #   make pristine        # clean build
 #   make SHIELD=other    # override the target
+#   make SNIPPET=        # build without the studio-rpc-usb-uart snippet
 #
 # Defaults mirror build.yaml, which remains the source of truth for CI.
 
@@ -12,12 +13,15 @@ SHELL := /bin/bash
 BOARD ?= nice_nano
 SHIELD ?= dabao
 
+# ZMK Studio needs the USB CDC-ACM endpoint from this Zephyr snippet (see build.yaml).
+SNIPPET ?= studio-rpc-usb-uart
+
 ZMK_IMAGE ?= zmkfirmware/zmk-build-arm:stable
 ZMK_WORKSPACE ?= $(HOME)/.cache/zmk-build
 
 BUILD_NAME := $(if $(SHIELD),$(SHIELD)-)$(BOARD)
 
-ZMK_ENV := BOARD=$(BOARD) SHIELD=$(SHIELD) ZMK_IMAGE=$(ZMK_IMAGE) ZMK_WORKSPACE=$(ZMK_WORKSPACE)
+ZMK_ENV := BOARD=$(BOARD) SHIELD=$(SHIELD) SNIPPET=$(SNIPPET) ZMK_IMAGE=$(ZMK_IMAGE) ZMK_WORKSPACE=$(ZMK_WORKSPACE)
 
 .PHONY: build pristine clean distclean
 

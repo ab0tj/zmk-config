@@ -7,3 +7,4 @@ requires: [pro_micro]
 exposes: [i2c]
 features:
   - keys
+  - studio

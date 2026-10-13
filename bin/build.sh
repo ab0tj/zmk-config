@@ -10,6 +10,7 @@
 #   bin/build.sh               # nice_nano + dabao (the build.yaml defaults)
 #   bin/build.sh -p            # pristine / clean build
 #   BOARD=... SHIELD=... bin/build.sh
+#   SNIPPET= bin/build.sh      # build without the studio-rpc-usb-uart snippet
 #   ZMK_IMAGE=zmkfirmware/zmk-build-arm:4.1-branch bin/build.sh
 #
 # The west workspace (zmk, zephyr, modules) is cached in ZMK_WORKSPACE
@@ -41,11 +42,17 @@ case "${1:-}" in
   -p | --pristine) PRISTINE="-p" ;;
 esac
 
+# ZMK Studio talks over a USB CDC-ACM serial port, which the shield's
+# CONFIG_ZMK_STUDIO=y alone does not provide. The snippet also defines
+# ZMK_BEHAVIORS_KEEP_ALL so every behavior is available to assign in Studio.
+SNIPPET="${SNIPPET-studio-rpc-usb-uart}"
+
 mkdir -p "$WORKSPACE" "$OUT_DIR"
 
 echo "==> image:     $IMAGE"
 echo "==> board:     $BOARD"
 echo "==> shield:    ${SHIELD:-<none>}"
+echo "==> snippet:   ${SNIPPET:-<none>}"
 echo "==> workspace: $WORKSPACE"
 echo "==> output:    $OUT_DIR/$ARTIFACT.uf2"
 
@@ -69,6 +76,7 @@ docker run --rm \
   -v "$OUT_DIR":/out \
   -e BOARD="$BOARD" \
   -e SHIELD="$SHIELD" \
+  -e SNIPPET="$SNIPPET" \
   -e BUILD_NAME="$BUILD_NAME" \
   -e ARTIFACT="$ARTIFACT" \
   -e PRISTINE="$PRISTINE" \
@@ -94,8 +102,8 @@ west zephyr-export
 
 BUILD_DIR="/workspace/build/${BUILD_NAME}"
 
-echo "==> west build -b ${BOARD}${SHIELD:+ -DSHIELD=${SHIELD}}"
-west build -s zmk/app -d "$BUILD_DIR" -b "$BOARD" ${PRISTINE} -- \
+echo "==> west build -b ${BOARD}${SHIELD:+ -DSHIELD=${SHIELD}}${SNIPPET:+ -S ${SNIPPET}}"
+west build -s zmk/app -d "$BUILD_DIR" -b "$BOARD" ${PRISTINE} ${SNIPPET:+-S "$SNIPPET"} -- \
   -DZMK_CONFIG=/workspace/config \
   -DZMK_EXTRA_MODULES=/config-src \
   ${SHIELD:+-DSHIELD="$SHIELD"}

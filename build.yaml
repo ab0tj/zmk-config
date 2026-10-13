@@ -10,7 +10,10 @@ shield: [ "dabao" ]
 include:
   - board: nice_nano
     shield: dabao
-    # cmake-args: -DCONFIG_ZMK_STUDIO=y
+    # Enables ZMK Studio's USB CDC-ACM endpoint and builds all behaviors so they
+    # can be assigned from ZMK Studio. CONFIG_ZMK_STUDIO=y itself lives in
+    # boards/shields/dabao/dabao.conf, which also covers local builds.
+    snippet: studio-rpc-usb-uart
     artifact-name: dabao
 
 # ---

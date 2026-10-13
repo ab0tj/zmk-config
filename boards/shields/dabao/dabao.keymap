@@ -155,6 +155,7 @@
         compatible = "zmk,keymap";
 
         default_layer {
+            display-name = "Default";
             bindings = <
             // ╭───────────────┬───────────────┬───────────────┬───────────────┬───────────────╮  ╭───────────────┬───────────────┬───────────────┬───────────────┬───────────────╮
                           &kp Q           &kp W           &kp E           &kp R           &kp T             &kp Y           &kp U           &kp I           &kp O           &kp P
@@ -170,6 +171,7 @@
         };
 
         symbols_layer {
+            display-name = "Symbols";
             bindings = <
             // ╭───────────────┬───────────────┬───────────────┬───────────────┬───────────────╮  ╭───────────────┬───────────────┬───────────────┬───────────────┬───────────────╮
                        &kp EXCL          &kp AT        &kp STAR       &kp GRAVE       &kp TILDE            &kp N7          &kp N8          &kp N9        &kp PLUS          &trans
@@ -185,6 +187,7 @@
         };
 
         nav_layer {
+            display-name = "Nav";
             bindings = <
             // ╭───────────────┬───────────────┬───────────────┬───────────────┬───────────────╮  ╭───────────────┬───────────────┬───────────────┬───────────────┬───────────────╮
                          &trans          &trans          &trans          &trans          &trans      &screenshot     &kp LG(LEFT)      &lcs_tab       &ctrl_tab      &kp LG(RIGHT)
@@ -199,7 +202,12 @@
             >;
         };
 
+        // Misc layer. Position 35 (the rightmost right-thumb key, which is
+        // &key_repeat on the default layer) is repurposed as &studio_unlock:
+        // hold the right thumb ENTER (position 33 = &lt 3) and tap it to unlock
+        // ZMK Studio for runtime keymap edits.
         misc_layer {
+            display-name = "Misc";
             bindings = <
             // ╭───────────────┬───────────────┬───────────────┬───────────────┬───────────────╮  ╭───────────────┬───────────────┬───────────────┬───────────────┬───────────────╮
                          &kp F1          &kp F2          &kp F3          &kp F4          &kp F5      &bt BT_SEL 0    &bt BT_SEL 1    &bt BT_SEL 2      &bt BT_CLR  &bt BT_CLR_ALL
@@ -209,7 +217,7 @@
                         &kp F11         &kp F12          &trans          &trans          &trans            &trans       &kp C_PREV    &kp C_NEXT        &kp C_STOP          &trans
             // ╰───────────────┴───────────────┴───────────────┴───────────────┴───────────────╯  ╰───────────────┴───────────────┴───────────────┴───────────────┴───────────────╯
             //                                 ╭───────────────┬───────────────┬───────────────╮  ╭───────────────┬───────────────┬───────────────╮
-                                                         &trans          &trans          &trans            &trans          &trans          &trans
+                                                         &trans          &trans          &trans            &trans          &trans  &studio_unlock
             //                                 ╰───────────────┴───────────────┴───────────────╯  ╰───────────────┴───────────────┴───────────────╯
             >;
         };
@@ -220,6 +228,7 @@
         // layer deactivation so press-and-hold becomes a drag. F holds layer 5,
         // which turns trackpoint motion into scrolling (see scroll_layer).
         mouse_layer {
+            display-name = "Mouse";
             bindings = <
             // ╭───────────────┬───────────────┬───────────────┬───────────────┬───────────────╮  ╭───────────────┬───────────────┬───────────────┬───────────────┬───────────────╮
                          &trans          &trans          &trans          &trans          &trans            &trans          &trans          &trans          &trans          &trans
@@ -239,6 +248,7 @@
         // so while it is held the trackpoint produces wheel events instead of
         // pointer motion. Every key is &trans, so nothing else changes.
         scroll_layer {
+            display-name = "Scroll";
             bindings = <
             // ╭───────────────┬───────────────┬───────────────┬───────────────┬───────────────╮  ╭───────────────┬───────────────┬───────────────┬───────────────┬───────────────╮
                          &trans          &trans          &trans          &trans          &trans            &trans          &trans          &trans          &trans          &trans
@@ -251,6 +261,19 @@
                                                 &trans          &trans          &trans            &trans          &trans          &trans
             //                                 ╰───────────────┴───────────────┴───────────────╯  ╰───────────────┴───────────────┴───────────────╯
             >;
+        };
+
+        // Two spare layers ZMK Studio can rename and fill in without a reflash.
+        // Non-Studio builds skip them (DT_FOREACH_CHILD_STATUS_OKAY); Studio
+        // selects ZMK_KEYMAP_LAYER_REORDERING, which enumerates them.
+        extra1 {
+            status = "reserved";
+            display-name = "Extra 1";
+        };
+
+        extra2 {
+            status = "reserved";
+            display-name = "Extra 2";
         };
     };
 };

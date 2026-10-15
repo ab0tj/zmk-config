@@ -7,11 +7,29 @@
 # toolchain image, zmkfirmware/zmk-build-arm:stable.
 #
 # Usage:
-#   bin/build.sh               # nice_nano + dabao (the build.yaml defaults)
+#   bin/build.sh               # nice_nano + dabao, nosd layout (see LAYOUT)
 #   bin/build.sh -p            # pristine / clean build
 #   BOARD=... SHIELD=... bin/build.sh
-#   SNIPPET= bin/build.sh      # build without the studio-rpc-usb-uart snippet
+#   LAYOUT=sd bin/build.sh     # SoftDevice layout instead of nosd
+#   SNIPPET= bin/build.sh      # build with no snippets at all
 #   ZMK_IMAGE=zmkfirmware/zmk-build-arm:4.1-branch bin/build.sh
+#
+# LAYOUT selects the controller flash layout: where the bootloader expects the
+# application, and therefore which snippets supply it. The two are mutually
+# incompatible - firmware linked for one layout does not run on a controller
+# whose bootloader uses the other.
+#
+#   nosd - no SoftDevice. Application at 0x1000, snippets
+#          "nrf52840-nosd studio-rpc-usb-uart". Official nice!nano v2 boards;
+#          INFO_UF2.TXT reports "SoftDevice: not found".
+#   sd   - SoftDevice reserved. Application at 0x26000, snippet
+#          "studio-rpc-usb-uart". nice!nano v1 and most pro micro clones;
+#          INFO_UF2.TXT reports "SoftDevice: S140 ...".
+#
+# Check a controller with: cat /run/media/$USER/NICENANO/INFO_UF2.TXT
+#
+# LAYOUT is part of BUILD_NAME, so each layout builds into its own directory in
+# the workspace and switching layouts never needs a pristine rebuild.
 #
 # The west workspace (zmk, zephyr, modules) is cached in ZMK_WORKSPACE
 # (default ~/.cache/zmk-build), so only the first run pays the clone cost.
@@ -29,29 +47,43 @@ REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 IMAGE="${ZMK_IMAGE:-zmkfirmware/zmk-build-arm:stable}"
 BOARD="${BOARD:-nice_nano}"
 SHIELD="${SHIELD:-dabao}"
+
+# Snippet sets per layout; SNIPPET (if set, even empty) overrides them.
+LAYOUT="${LAYOUT:-nosd}"
+case "$LAYOUT" in
+  nosd) layout_snippets="nrf52840-nosd studio-rpc-usb-uart" ;;
+  sd) layout_snippets="studio-rpc-usb-uart" ;;
+  *)
+    echo "unknown LAYOUT '$LAYOUT': expected 'nosd' or 'sd'" >&2
+    exit 2
+    ;;
+esac
+
 WORKSPACE="${ZMK_WORKSPACE:-$HOME/.cache/zmk-build}"
 OUT_DIR="${OUT_DIR:-$REPO_DIR/build}"
 HOST_UID="$(id -u):$(id -g)"
 
-# Same artifact naming as the reusable CI workflow.
-BUILD_NAME="${SHIELD:+${SHIELD}-}${BOARD}"
-ARTIFACT="${ARTIFACT_NAME:-${BUILD_NAME}-zmk}"
+# Same artifact naming as the reusable CI workflow, plus the layout so the two
+# variants never collide. Both are overridable by the caller (the Makefile).
+BUILD_NAME="${BUILD_NAME:-${SHIELD:+${SHIELD}-}${BOARD}-${LAYOUT}}"
+ARTIFACT="${ARTIFACT_NAME:-${BUILD_NAME}}"
 
 PRISTINE=""
 case "${1:-}" in
   -p | --pristine) PRISTINE="-p" ;;
 esac
 
-# ZMK Studio talks over a USB CDC-ACM serial port, which the shield's
-# CONFIG_ZMK_STUDIO=y alone does not provide. The snippet also defines
-# ZMK_BEHAVIORS_KEEP_ALL so every behavior is available to assign in Studio.
-SNIPPET="${SNIPPET-studio-rpc-usb-uart}"
+# The layout decision belongs to the controller, not the keyboard - see the
+# LAYOUT descriptions above. SNIPPET is only defaulted when unset, so an empty
+# SNIPPET= still means "build with no snippets".
+SNIPPET="${SNIPPET-$layout_snippets}"
 
 mkdir -p "$WORKSPACE" "$OUT_DIR"
 
 echo "==> image:     $IMAGE"
 echo "==> board:     $BOARD"
 echo "==> shield:    ${SHIELD:-<none>}"
+echo "==> layout:    $LAYOUT"
 echo "==> snippet:   ${SNIPPET:-<none>}"
 echo "==> workspace: $WORKSPACE"
 echo "==> output:    $OUT_DIR/$ARTIFACT.uf2"

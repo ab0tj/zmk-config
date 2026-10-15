@@ -1,19 +1,37 @@
 # This file generates the GitHub Actions matrix.
-# For simple board + shield combinations, add them to the top level board and
-# shield arrays, for more control, add individual board + shield combinations
-# to the `include` property. You can also use the `cmake-args` property to
-# pass flags to the build command, `snippet` to add a Zephyr snippet, and
-# `artifact-name` to assign a name to distinguish build outputs from each other:
 #
-board: [ "nice_nano" ]
-shield: [ "dabao" ]
+# Every entry produces one .uf2. `snippet` accepts a space separated list,
+# `cmake-args` extra flags to the build command, and `artifact-name` names the
+# output (and the artifact) to tell builds apart.
+#
+# There are two controller flash layouts, and they are mutually incompatible:
+# a bootloader only runs firmware linked for its own application offset. The
+# layout is a property of the controller, not of the keyboard, so both variants
+# are built here rather than replacing one another. See bin/build.sh for the
+# full explanation incl. how to tell which layout a controller needs
+# (`cat /run/media/$USER/NICENANO/INFO_UF2.TXT`).
+#
+#   nosd - no SoftDevice, application at 0x1000. Official nice!nano v2 boards
+#          ("SoftDevice: not found"). nrf52840-nosd moves the code partition to
+#          0x1000 (844KB) and storage to 0xd4000 (128KB).
+#   sd   - SoftDevice reserved, application at 0x26000. nice!nano v1 and most
+#          pro micro clones ("SoftDevice: S140 ...").
+#
+# studio-rpc-usb-uart is in both: it supplies ZMK Studio's USB CDC-ACM endpoint
+# and builds every behavior so it can be assigned from ZMK Studio.
+# CONFIG_ZMK_STUDIO=y itself lives in boards/shields/dabao/dabao.conf, so it
+# applies to CI and local builds alike.
+#
+# Artifact names match what `make LAYOUT=<layout>` produces locally.
+#
 include:
   - board: nice_nano
     shield: dabao
-    # Enables ZMK Studio's USB CDC-ACM endpoint and builds all behaviors so they
-    # can be assigned from ZMK Studio. CONFIG_ZMK_STUDIO=y itself lives in
-    # boards/shields/dabao/dabao.conf, which also covers local builds.
+    snippet: nrf52840-nosd studio-rpc-usb-uart
+    artifact-name: dabao-nice_nano-nosd
+  - board: nice_nano
+    shield: dabao
     snippet: studio-rpc-usb-uart
-    artifact-name: dabao
+    artifact-name: dabao-nice_nano-sd
 
 # ---

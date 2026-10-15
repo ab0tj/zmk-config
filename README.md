@@ -2,9 +2,66 @@
 
 This repository contains configuration, custom shield files, and keymaps for all my keyboards.
 
+## Controller layout: `nosd` or `sd`
+
+Firmware is not portable across nRF52840 controllers with different bootloaders.
+A bootloader only runs an application linked at the offset it expects, so each
+controller belongs to one of two flash layouts, and this repo builds both:
+
+| Layout | Application offset | Bootloader | Snippets |
+|--------|--------------------|------------|----------|
+| `nosd` | `0x1000` | no SoftDevice | `nrf52840-nosd studio-rpc-usb-uart` |
+| `sd` | `0x26000` | SoftDevice reserved | `studio-rpc-usb-uart` |
+
+`nosd` is the default here because that is what the official nice!nano v2 uses:
+ZMK's stock `nice_nano` board definition links the application at `0x26000`
+(the SoftDevice layout, correct for nice!nano v1 and most pro micro clones), and
+a `nosd` bootloader never looks there. The flash itself still succeeds - it just
+lands where nothing ever boots it.
+
+Check a controller by putting it in its bootloader (double tap reset) and reading
+what it reports:
+
+```sh
+cat /run/media/$USER/NICENANO/INFO_UF2.TXT
+```
+
+```text
+SoftDevice: not found            # nosd - use LAYOUT=nosd
+SoftDevice: S140 version 6.1.1   # sd   - use LAYOUT=sd
+```
+
+`Board-ID: nRF52840-nicenano` vs `...-nicenano-v2` distinguishes the controller
+revision, but the `SoftDevice:` line is what decides the layout.
+
+Same check for a `.uf2` you already have, without a controller:
+
+```sh
+# prints the application offset it was linked for (00001000 or 00026000)
+od -An -tx4 -j 12 -N 4 build/dabao-nice_nano-nosd.uf2
+```
+
+Flashing the wrong layout looks like a broken flash: the copy appears to work and
+the drive unmounts, but the controller stays in its bootloader with the blue LED
+blinking and never shows up as a keyboard (no `1d50` USB device).
+
+**Back up before switching layouts.** Firmware built with `nrf52840-nosd`
+overwrites the SoftDevice region, and a controller whose bootloader depends on a
+SoftDevice can need a bootloader reflash afterwards. The bootloader exposes the
+controller's current flash contents as `CURRENT.UF2` on the mounted drive:
+
+```sh
+cp /run/media/$USER/NICENANO/CURRENT.UF2 ~/Downloads/nicenano-backup-$(date +%F).uf2
+```
+
+Copying that file back to the `NICENANO` drive restores the previous contents.
+
 ## Building via Github Actions
 
 Firmware is built via Github Actions, and can be downloaded via the artifacts. This avoids needing to set up a local toolchain.
+
+`build.yaml` builds one artifact per layout, named as the local builds are:
+`dabao-nice_nano-nosd` and `dabao-nice_nano-sd`.
 
 ## Building Locally (Docker)
 
@@ -14,8 +71,9 @@ Actions workflow inside the official ZMK toolchain container
 `build-user-config.yml` workflow uses:
 
 ```bash
-bin/build.sh          # nice_nano + dabao, as configured in build.yaml
+bin/build.sh          # nice_nano + dabao, nosd layout
 bin/build.sh -p       # pristine (clean) build
+LAYOUT=sd bin/build.sh
 ```
 
 Override the target for other boards/shields, e.g.:
@@ -24,15 +82,34 @@ Override the target for other boards/shields, e.g.:
 BOARD=nice_nano SHIELD=dabao bin/build.sh
 ```
 
-A thin Makefile wrapper is also available: `make`, `make pristine` (clean
-build), `make SHIELD=other BOARD=other`, `make clean`.
+A thin Makefile wrapper is also available:
 
-Both default to `SNIPPET=studio-rpc-usb-uart` (ZMK Studio's USB endpoint, as in
-`build.yaml`); override it with `SNIPPET=other` or disable it with `make SNIPPET=`.
+```bash
+make                  # default layout (LAYOUT=nosd)
+make LAYOUT=sd        # SoftDevice layout
+make nosd             # shorthand for the two layouts
+make sd
+make both             # both firmwares in one go
+make pristine         # clean build for the selected layout
+make pristine-sd      # clean build for one layout (also pristine-nosd)
+make SHIELD=other BOARD=other
+make clean            # drop build/<artifact>.uf2 for the selected layout
+make distclean        # also drop the cached west workspace
+```
 
-Firmware is written to `./build/<artifact-name>.uf2`. The first run clones
-`zmk`, Zephyr and the modules into `~/.cache/zmk-build` (a few GB); later
-builds reuse that workspace and only rebuild what changed.
+The layout is the only difference between the two firmwares, and it is part of the
+build directory and artifact name, so `make both` needs no pristine rebuild in
+between.
+
+Snippets come from the layout (`nosd`: `nrf52840-nosd studio-rpc-usb-uart`, `sd`:
+`studio-rpc-usb-uart`); override them with `SNIPPET=other` or disable them with
+`make SNIPPET=`. Note that Zephyr *ignores* a snippet change in an existing build
+directory, so use `make pristine` (or `west build -p`) after changing snippets.
+
+Firmware is written to `./build/<artifact>.uf2`, e.g.
+`./build/dabao-nice_nano-nosd.uf2`. The first run clones `zmk`, Zephyr and the
+modules into `~/.cache/zmk-build` (a few GB); later builds reuse that workspace
+and only rebuild what changed.
 
 ## Building Locally (Native Toolchain)
 
@@ -54,20 +131,22 @@ Now you can build the firmware for a specific keyboard by running:
 
 ```bash
 # Optionally, use `west build -p ...` for pristine/clean builds
-west build -b <board> -d build/<board> -- -DSHIELD=<shield>
+west build -b <board> -d build/<board>-<layout> -S <snippets> -- -DSHIELD=<shield>
 ```
 
-Replace `<board>` with the name of the board (e.g., `nice_nano`) and `<shield>` with the name of the shield (e.g., `dabao`). The table below shows specific build commands for each keyboard in this repo:
+Replace `<board>` with the name of the board (e.g., `nice_nano`) and `<shield>` with the name of the shield (e.g., `dabao`). The table below shows specific build commands for each keyboard in this repo, once per layout:
 
-| Board/Shield | Command |
-|--------------|---------|
-| [dabao](https://github.com/justinmklam/dabao) | `west build -b nice_nano -S studio-rpc-usb-uart -- -DSHIELD=dabao -DZMK_EXTRA_MODULES=/abs/path/to/kb_zmk_ps2_mouse_trackpoint_driver/` |
+| Board/Shield | Layout | Command |
+|--------------|--------|---------|
+| [dabao](https://github.com/justinmklam/dabao) | `nosd` | `west build -b nice_nano -S nrf52840-nosd -S studio-rpc-usb-uart -- -DSHIELD=dabao -DZMK_EXTRA_MODULES=/abs/path/to/kb_zmk_ps2_mouse_trackpoint_driver/` |
+| [dabao](https://github.com/justinmklam/dabao) | `sd` | `west build -b nice_nano -S studio-rpc-usb-uart -- -DSHIELD=dabao -DZMK_EXTRA_MODULES=/abs/path/to/kb_zmk_ps2_mouse_trackpoint_driver/` |
 
-The `-S studio-rpc-usb-uart` snippet supplies ZMK Studio's USB CDC-ACM endpoint
-and builds every behavior so it can be assigned from Studio. `CONFIG_ZMK_STUDIO=y`
+`-S` may be repeated, or given one space separated value (`-S "nrf52840-nosd
+studio-rpc-usb-uart"`); ZMK's CI workflow passes a single quoted value. The
+`studio-rpc-usb-uart` snippet supplies ZMK Studio's USB CDC-ACM endpoint and
+builds every behavior so it can be assigned from Studio. `CONFIG_ZMK_STUDIO=y`
 itself comes from `boards/shields/dabao/dabao.conf`, so it applies to CI and
-local builds alike. Zephyr refuses to apply a snippet to an existing build
-directory, so run `west build -p` (or `make pristine`) after changing it.
+local builds alike.
 
 ## ZMK Studio
 
@@ -99,9 +178,29 @@ The one deliberate loss when using the `Misc` layer is `&key_repeat` at position
 For the nice!nano, simply double tap the reset button to put it into bootloader mode, then copy the .uf2 file from the build directory to the mounted drive.
 
 ```sh
-# Docker build output
-cp ./build/dabao-nice_nano-zmk.uf2 /media/$USER/NICENANO/
+# Docker / Makefile build output, e.g. the nosd layout
+cp ./build/dabao-nice_nano-nosd.uf2 /run/media/$USER/NICENANO/
 
-# Native toolchain build output
-cp ~/zmk/app/build/zephyr/zmk.uf2 /media/$USER/NICENANO/
+# Native toolchain build output (see -d above)
+cp ~/zmk/app/build/nice_nano-nosd/zephyr/zmk.uf2 /run/media/$USER/NICENANO/
 ```
+
+GitHub Actions artifacts use the same names per layout:
+`dabao-nice_nano-nosd.uf2` and `dabao-nice_nano-sd.uf2`.
+
+Copy the firmware built for the layout your controller uses (see
+[Controller layout](#controller-layout-nosd-or-sd)). The drive disappearing while
+the copy is still flushing is normal, as is a file manager error: the bootloader
+reboots as soon as it has received the last block.
+
+A successful flash takes the controller out of the bootloader, so the blue LED
+stops blinking and the keyboard shows up as a USB device:
+
+```sh
+lsusb | grep -i 1d50              # ZMK Project: the firmware is running
+journalctl -kf | grep -E 'usb|hid'
+```
+
+If the drive unmounts, the LED keeps blinking and no such device appears, the
+firmware was linked for the wrong layout (or the controller needs its bootloader
+reflashed).

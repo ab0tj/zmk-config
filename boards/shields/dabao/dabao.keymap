@@ -194,7 +194,7 @@
         combo_sym_r13 {
             timeout-ms = <50>;
             key-positions = <18 28>;
-            bindings = <&kp LG(Z)>;
+            bindings = <&kp LG(V)>;
         };
 
         //combo_sym_r14 {

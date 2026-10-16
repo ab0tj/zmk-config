@@ -132,7 +132,17 @@
 &tpoint0 {
     status = "okay";
 		disable-clicking;
-		tp-sensitivity = <100>;
+		// No tp-sensitivity here on purpose. Setting it in devicetree makes
+		// `zmk_mouse_ps2_settings_restore_dev` refuse to restore the value saved
+		// in flash ("Not restoring runtime settings ... because deviceconfig
+		// defines the setting"), so sensitivity changes made at runtime with the
+		// &mms keys on the mouse layer would not survive a reboot. Left out,
+		// config->tp_sensitivity is -1, and boot uses the stored value, falling
+		// back to the trackpoint's own default (128) when nothing is stored yet.
+		// Surviving runtime settings are also the reason the &mms keys exist and
+		// why they must be kept in auto_mouse_layer's excluded-positions in
+		// dabao.overlay. Use &mms MS_LOG to read the current values and
+		// &mms MS_RESET to restore the TP defaults and wipe the stored ones.
 		tp-x-invert;
 		tp-y-invert;
 		sampling-rate = <80>;

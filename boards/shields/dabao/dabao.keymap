@@ -1,6 +1,8 @@
 #include <behaviors.dtsi>
+#include <behaviors/mouse_setting.dtsi>
 #include <dt-bindings/zmk/keys.h>
 #include <dt-bindings/zmk/bt.h>
+#include <dt-bindings/zmk/mouse_settings.h>
 
 &mt {
     flavor = "hold-preferred";
@@ -78,41 +80,176 @@
             bindings = <&sk RSHFT>;
         };
 
-        // Bracket combos - opening
-        combo_lparen {
+        // Symbols
+        // vertical, left half, row 0
+        combo_sym_l00 {
             timeout-ms = <50>;
-            key-positions = <3 4>;
+            key-positions = <0 10>;
+            bindings = <&kp TILDE>;
+        };
+
+        combo_sym_l01 {
+            timeout-ms = <50>;
+            key-positions = <1 11>;
+            bindings = <&kp GRAVE>;
+        };
+
+        combo_sym_l02 {
+            timeout-ms = <50>;
+            key-positions = <2 12>;
+            bindings = <&kp EXCL>;
+        };
+
+        combo_sym_l03 {
+            timeout-ms = <50>;
+            key-positions = <3 13>;
+            bindings = <&kp AT>;
+        };
+
+        combo_sym_l04 {
+            timeout-ms = <50>;
+            key-positions = <4 14>;
+            bindings = <&kp EQUAL>;
+        };
+        // vertical, left half, row 1
+        combo_sym_l10 {
+            timeout-ms = <50>;
+            key-positions = <10 20>;
+            bindings = <&kp CARET>;
+        };
+
+        combo_sym_l11 {
+            timeout-ms = <50>;
+            key-positions = <11 21>;
+            bindings = <&kp PERCENT>;
+        };
+
+        combo_sym_l12 {
+            timeout-ms = <50>;
+            key-positions = <12 22>;
+            bindings = <&kp STAR>;
+        };
+
+        combo_sym_l13 {
+            timeout-ms = <50>;
+            key-positions = <13 23>;
+            bindings = <&kp HASH>;
+        };
+
+        combo_sym_l14 {
+            timeout-ms = <50>;
+            key-positions = <14 24>;
+            bindings = <&kp DOLLAR>;
+        };
+
+        // vertical, right half, row 0
+        combo_sym_r00 {
+            timeout-ms = <50>;
+            key-positions = <5 15>;
             bindings = <&kp LPAR>;
         };
-        combo_lbkt {
-            timeout-ms = <50>;
-            key-positions = <13 14>;
-            bindings = <&kp LBKT>;
-        };
-        combo_lbrc {
-            timeout-ms = <50>;
-            key-positions = <23 24>;
-            bindings = <&kp LBRC>;
-        };
 
-        // Bracket combos - closing
-        combo_rparen {
+        combo_sym_r01 {
             timeout-ms = <50>;
-            key-positions = <5 6>;
+            key-positions = <6 16>;
             bindings = <&kp RPAR>;
         };
-        combo_rbkt {
+
+        combo_sym_r02 {
             timeout-ms = <50>;
-            key-positions = <15 16>;
-            bindings = <&kp RBKT>;
-        };
-        combo_rbrc {
-            timeout-ms = <50>;
-            key-positions = <25 26>;
-            bindings = <&kp RBRC>;
+            key-positions = <7 17>;
+            bindings = <&kp LBKT>;
         };
 
-        // L + ; = '
+        combo_sym_r03 {
+            timeout-ms = <50>;
+            key-positions = <8 18>;
+            bindings = <&kp RBKT>;
+        };
+
+        combo_sym_r04 {
+            timeout-ms = <50>;
+            key-positions = <9 19>;
+            bindings = <&kp BSLH>;
+        };
+        // vertical, right half, row 1
+        combo_sym_r10 {
+            timeout-ms = <50>;
+            key-positions = <15 25>;
+            bindings = <&kp AMPS>;
+        };
+
+        combo_sym_r11 {
+            timeout-ms = <50>;
+            key-positions = <16 26>;
+            bindings = <&kp LG(C)>;
+        };
+
+        combo_sym_r12 {
+            timeout-ms = <50>;
+            key-positions = <17 27>;
+            bindings = <&kp LG(X)>;
+        };
+
+        combo_sym_r13 {
+            timeout-ms = <50>;
+            key-positions = <18 28>;
+            bindings = <&kp LG(Z)>;
+        };
+
+        //combo_sym_r14 {
+        //    timeout-ms = <50>;
+        //    key-positions = <19 29>;
+        //    bindings = <&kp BLSH>;
+        //};
+
+        // Bracket combos - opening
+        //combo_lparen {
+        //    timeout-ms = <50>;
+        //    key-positions = <13 14>;
+        //    bindings = <&kp LPAR>;
+        //};
+        //combo_lbkt {
+        //    timeout-ms = <50>;
+        //    key-positions = <3 4>;
+        //    bindings = <&kp LBKT>;
+        //};
+        //combo_lbrc {
+        //    timeout-ms = <50>;
+        //    key-positions = <23 24>;
+        //    bindings = <&kp LBRC>;
+        //};
+
+        // Bracket combos - closing
+        //combo_rparen {
+        //    timeout-ms = <50>;
+        //    key-positions = <15 16>;
+        //    bindings = <&kp RPAR>;
+        //};
+        //combo_rbkt {
+        //    timeout-ms = <50>;
+        //    key-positions = <5 6>;
+        //    bindings = <&kp RBKT>;
+        //};
+        //combo_rbrc {
+        //    timeout-ms = <50>;
+        //    key-positions = <25 26>;
+        //    bindings = <&kp RBRC>;
+        //};
+
+        // d + f
+        combo_hyphen {
+            timeout-ms = <50>;
+            key-positions = <12 13>;
+            bindings = <&kp MINUS>;
+        };
+        // f + g
+        combo_under {
+            timeout-ms = <50>;
+            key-positions = <13 14>;
+            bindings = <&kp UNDER>;
+        };
+        // l + ; = '
         combo_sqt {
             timeout-ms = <50>;
             key-positions = <18 19>;
@@ -165,7 +302,7 @@
                           &kp Z           &kp X           &kp C           &kp V           &kp B             &kp N           &kp M       &kp COMMA         &kp DOT       &kp SLASH
             // ╰───────────────┴───────────────┴───────────────┴───────────────┴───────────────╯  ╰───────────────┴───────────────┴───────────────┴───────────────┴───────────────╯
             //                                 ╭───────────────┬───────────────┬───────────────╮  ╭───────────────┬───────────────┬───────────────╮
-                                          &bspc_nav 2 BSPC    &kp LSHFT      &lt 1 TAB       &lt 3 ENTER     &lt 2 SPACE        &key_repeat
+                                                        &none   &bspc_nav 1 BSPC    &mt LSHFT TAB    &lt 3 ENTER     &lt 2 SPACE        &key_repeat
             //                                 ╰───────────────┴───────────────┴───────────────╯  ╰───────────────┴───────────────┴───────────────╯
             >;
         };
@@ -176,7 +313,7 @@
             // ╭───────────────┬───────────────┬───────────────┬───────────────┬───────────────╮  ╭───────────────┬───────────────┬───────────────┬───────────────┬───────────────╮
                        &kp EXCL          &kp AT        &kp STAR       &kp GRAVE       &kp TILDE            &kp N7          &kp N8          &kp N9        &kp PLUS          &trans
             // ├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤  ├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤
-                       &kp HASH         &kp SQT         &kp DQT       &kp MINUS       &kp EQUAL            &kp N4          &kp N5          &kp N6       &kp MINUS       &kp COLON
+                       &kp GRAVE       &kp TILDE       &kp HASH       &kp MINUS       &kp EQUAL            &kp N4          &kp N5          &kp N6       &kp MINUS       &kp COLON
             // ├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤  ├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤
                       &kp UNDER        &kp DLLR       &kp PRCNT       &kp CARET        &kp AMPS            &kp N1          &kp N2          &kp N3        &kp BSLH          &trans
             // ╰───────────────┴───────────────┴───────────────┴───────────────┴───────────────╯  ╰───────────────┴───────────────┴───────────────┴───────────────┴───────────────╯
@@ -225,15 +362,59 @@
         // Auto mouse layer. Activated by the temp-layer input processor in
         // dabao.overlay while the trackpoint reports movement, and released
         // ~400ms after the last movement. J/K/L click and are excluded from
-        // layer deactivation so press-and-hold becomes a drag. F holds layer 5,
-        // which turns trackpoint motion into scrolling (see scroll_layer).
+        // layer deactivation so press-and-hold becomes a drag. F (13) holds the
+        // boost layer and the outer left thumb (31) holds the scroll layer;
+        // both change what the trackpoint reports rather than what a key does
+        // (see boost, slow and scroller in dabao.overlay).
+        //
+        // The left half carries the trackpoint tuning keys. A press steps the
+        // value, and the driver writes all four values to flash once
+        // CONFIG_ZMK_SETTINGS_SAVE_DEBOUNCE has passed without another change,
+        // restoring them on the next boot:
+        //
+        //    0 /  1   sensitivity        -10 / +10
+        //    2 /  3   negative inertia    -1 / +1
+        //   10 / 11   v6 plateau speed    -5 / +5   (the transfer function ceiling)
+        //    4        restore TP defaults and delete the stored settings
+        //   30        log the current values (MS_LOG) for pasting into the dtsi
+        //
+        // 12 and 13 are the precision and boost modifiers. Held, they scale
+        // trackpoint motion by 1/2 and 3/1, so a flick crosses a large display
+        // without giving up fine control the rest of the time. Press-to-select
+        // has no keys here: the trackpoint runs with disable-clicking in
+        // dabao_trackpoint.dtsi, which makes the MS_TP_PTS_THRESHOLD step inert.
+        //
+        // Every one of those positions must stay in auto_mouse_layer's
+        // excluded-positions in dabao.overlay, or the press deactivates the
+        // layer before its own binding resolves and nothing fires. All the MS_*
+        // codes the behavior accepts are in dt-bindings/zmk/mouse_settings.h.
         mouse_layer {
             display-name = "Mouse";
             bindings = <
             // ╭───────────────┬───────────────┬───────────────┬───────────────┬───────────────╮  ╭───────────────┬───────────────┬───────────────┬───────────────┬───────────────╮
+                  &mms MS_TP_SENSITIVITY_DECR  &mms MS_TP_SENSITIVITY_INCR  &mms MS_TP_NEG_INERTIA_DECR  &mms MS_TP_NEG_INERTIA_INCR  &mms MS_RESET    &trans          &trans          &trans          &trans          &trans
+            // ├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤  ├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤
+                  &mms MS_TP_VALUE6_DECR  &mms MS_TP_VALUE6_INCR  &mo 7  &mo 6  &trans                   &mkp LCLK      &mkp RCLK        &mkp MCLK         &trans          &trans
+            // ├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤  ├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤
+                         &trans          &trans          &trans          &trans          &trans            &trans          &trans          &trans          &trans          &trans
+            // ╰───────────────┴───────────────┴───────────────┴───────────────┴───────────────╯  ╰───────────────┴───────────────┴───────────────┴───────────────┴───────────────╯
+            //                                 ╭───────────────┬───────────────┬───────────────╮  ╭───────────────┬───────────────┬───────────────╮
+                                                &mms MS_LOG  &mo 5  &trans            &trans  &trans  &trans
+            //                                 ╰───────────────┴───────────────┴───────────────╯  ╰───────────────┴───────────────┴───────────────╯
+            >;
+        };
+
+        // Scroll mode. The outer left thumb holds this layer via &mo 5, and it
+        // is listed in the scroller input listener's layers in dabao.overlay,
+        // so while it is held the trackpoint produces wheel events instead of
+        // pointer motion. Every key is &trans, so nothing else changes.
+        scroll_layer {
+            display-name = "Scroll";
+            bindings = <
+            // ╭───────────────┬───────────────┬───────────────┬───────────────┬───────────────╮  ╭───────────────┬───────────────┬───────────────┬───────────────┬───────────────╮
                          &trans          &trans          &trans          &trans          &trans            &trans          &trans          &trans          &trans          &trans
             // ├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤  ├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤
-                         &trans          &trans          &trans          &mo 5           &trans          &trans        &mkp LCLK       &mkp RCLK          &mkp MCLK          &trans
+                         &trans          &trans          &trans          &trans          &trans            &trans          &trans          &trans          &trans          &trans
             // ├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤  ├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤
                          &trans          &trans          &trans          &trans          &trans            &trans          &trans          &trans          &trans          &trans
             // ╰───────────────┴───────────────┴───────────────┴───────────────┴───────────────╯  ╰───────────────┴───────────────┴───────────────┴───────────────┴───────────────╯
@@ -243,12 +424,40 @@
             >;
         };
 
-        // Scroll mode. F on the mouse layer holds this layer via &mo 5, and it
-        // is listed in the scroller input listener's layers in dabao.overlay,
-        // so while it is held the trackpoint produces wheel events instead of
-        // pointer motion. Every key is &trans, so nothing else changes.
-        scroll_layer {
-            display-name = "Scroll";
+        // Boost and precision. Held from the mouse layer, these change no key
+        // binding at all: dabao.overlay's input_listener carries a layer
+        // override for each, scaling trackpoint motion by 3/1 and 1/2. Every
+        // key is &trans, so clicks on 16/17/18 keep working while boosting and
+        // scrolling still wins if the scroll thumb is held at the same time.
+        //
+        // Position in this file fixes the layer numbers: default 0, symbols 1,
+        // nav 2, misc 3, mouse 4, scroll 5, boost 6, slow 7, then the two
+        // reserved layers. They have to sit after scroll, because the scroller
+        // override in dabao.overlay is keyed to <1 5> and the auto mouse layer
+        // to <4>; declaring a layer above scroll shifts it onto those numbers
+        // and silently turns trackpoint motion into wheel events. Sitting before
+        // the reserved pair keeps boost and slow at 6 and 7 in both the Studio
+        // and non-Studio layer enumerations. Nothing here is verified by the
+        // compiler: a wrong number builds clean and misbehaves at runtime, so
+        // check the generated layer order after any edit to this file.
+        boost_layer {
+            display-name = "Boost";
+            bindings = <
+            // ╭───────────────┬───────────────┬───────────────┬───────────────┬───────────────╮  ╭───────────────┬───────────────┬───────────────┬───────────────┬───────────────╮
+                         &trans          &trans          &trans          &trans          &trans            &trans          &trans          &trans          &trans          &trans
+            // ├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤  ├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤
+                         &trans          &trans          &trans          &trans          &trans            &trans          &trans          &trans          &trans          &trans
+            // ├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤  ├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤
+                         &trans          &trans          &trans          &trans          &trans            &trans          &trans          &trans          &trans          &trans
+            // ╰───────────────┴───────────────┴───────────────┴───────────────┴───────────────╯  ╰───────────────┴───────────────┴───────────────┴───────────────┴───────────────╯
+            //                                 ╭───────────────┬───────────────┬───────────────╮  ╭───────────────┬───────────────┬───────────────╮
+                                                &trans          &trans          &trans            &trans          &trans          &trans
+            //                                 ╰───────────────┴───────────────┴───────────────╯  ╰───────────────┴───────────────┴───────────────╯
+            >;
+        };
+
+        slow_layer {
+            display-name = "Slow";
             bindings = <
             // ╭───────────────┬───────────────┬───────────────┬───────────────┬───────────────╮  ╭───────────────┬───────────────┬───────────────┬───────────────┬───────────────╮
                          &trans          &trans          &trans          &trans          &trans            &trans          &trans          &trans          &trans          &trans

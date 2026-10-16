@@ -151,9 +151,9 @@ local builds alike.
 ## ZMK Studio
 
 Every build is Studio-capable: it exposes a physical layout (`dabao-layouts.dtsi`),
-eight named layers (`Default`, `Symbols`, `Nav`, `Misc`, `Mouse`, `Scroll` plus two
-empty reserved layers), and all ZMK behaviors, so bindings and layers can be
-changed at runtime instead of reflashing.
+nine layers (`Default`, `Symbols`, `Nav`, `Misc`, `Mouse`, `Boost`, `Slow` plus
+two empty reserved layers), and all ZMK behaviors, so bindings and layers can
+be changed at runtime instead of reflashing.
 
 1. Flash the firmware as usual (see below) and plug the keyboard in over USB.
 2. Open <https://zmk.studio> in Chrome/Edge, or install the native app from

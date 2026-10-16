@@ -302,11 +302,14 @@
                           &kp Z           &kp X           &kp C           &kp V           &kp B             &kp N           &kp M       &kp COMMA         &kp DOT       &kp SLASH
             // ╰───────────────┴───────────────┴───────────────┴───────────────┴───────────────╯  ╰───────────────┴───────────────┴───────────────┴───────────────┴───────────────╯
             //                                 ╭───────────────┬───────────────┬───────────────╮  ╭───────────────┬───────────────┬───────────────╮
-                                                        &none   &bspc_nav 1 BSPC    &mt LSHFT TAB    &lt 3 ENTER     &lt 2 SPACE        &key_repeat
+                                                        &mo 4   &bspc_nav 1 BSPC    &mt LSHFT TAB    &lt 3 ENTER     &lt 2 SPACE        &key_repeat
             //                                 ╰───────────────┴───────────────┴───────────────╯  ╰───────────────┴───────────────┴───────────────╯
             >;
         };
 
+        // Symbols. Held from the inner left thumb (&bspc_nav), and also turns
+        // the trackpoint into a scroll wheel while held: dabao.overlay's
+        // scroller override is keyed to this layer's number (1).
         symbols_layer {
             display-name = "Symbols";
             bindings = <
@@ -359,67 +362,96 @@
             >;
         };
 
-        // Auto mouse layer. Activated by the temp-layer input processor in
-        // dabao.overlay while the trackpoint reports movement, and released
-        // ~400ms after the last movement. J/K/L click and are excluded from
-        // layer deactivation so press-and-hold becomes a drag. F (13) holds the
-        // boost layer and the outer left thumb (31) holds the scroll layer;
-        // both change what the trackpoint reports rather than what a key does
-        // (see boost, slow and scroller in dabao.overlay).
+        // Mouse layer. Held with the outer left thumb (&mo 4 at position 30 on
+        // the default layer), so a click is that thumb plus J/K/L. F (13) holds
+        // the boost layer and position 12 holds slow; both change what the
+        // trackpoint reports rather than what a key does (see boost, slow and
+        // scroller in dabao.overlay).
         //
-        // The left half carries the trackpoint tuning keys. A press steps the
-        // value, and the driver writes all four values to flash once
-        // CONFIG_ZMK_SETTINGS_SAVE_DEBOUNCE has passed without another change,
-        // restoring them on the next boot:
+        // The left half carries the &mms (mouse setting) keys. A press applies
+        // one step and the driver writes all four values to flash once
+        // CONFIG_ZMK_SETTINGS_SAVE_DEBOUNCE (5s, set in dabao.conf) has passed
+        // without another change, restoring them on the next boot. This is the
+        // complete set of codes &mms accepts (dt-bindings/zmk/mouse_settings.h);
+        // `value` is the number the code stands for and `key` is where this
+        // layer binds it (`-` = unbound here):
         //
-        //    0 /  1   sensitivity        -10 / +10
-        //    2 /  3   negative inertia    -1 / +1
-        //   10 / 11   v6 plateau speed    -5 / +5   (the transfer function ceiling)
-        //    4        restore TP defaults and delete the stored settings
-        //   30        log the current values (MS_LOG) for pasting into the dtsi
+        //   code                       value  key  step  range  default
+        //   MS_LOG                         0   20     -      -        -
+        //   MS_RESET                       1    4     -      -        -
+        //   MS_TP_SENSITIVITY_INCR        10    1   +10  0-255      128
+        //   MS_TP_SENSITIVITY_DECR        11    0   -10  0-255      128
+        //   MS_TP_NEG_INERTIA_INCR        12    3    +1  0-255        6
+        //   MS_TP_NEG_INERTIA_DECR        13    2    -1  0-255        6
+        //   MS_TP_VALUE6_INCR             14   11    +5  0-255       97
+        //   MS_TP_VALUE6_DECR             15   10    -5  0-255       97
+        //   MS_TP_PTS_THRESHOLD_INCR      16    -    +1  0-255        8
+        //   MS_TP_PTS_THRESHOLD_DECR      17    -    -1  0-255        8
         //
-        // 12 and 13 are the precision and boost modifiers. Held, they scale
-        // trackpoint motion by 1/2 and 3/1, so a flick crosses a large display
-        // without giving up fine control the rest of the time. Press-to-select
-        // has no keys here: the trackpoint runs with disable-clicking in
-        // dabao_trackpoint.dtsi, which makes the MS_TP_PTS_THRESHOLD step inert.
+        // `step` is what one press adds or subtracts, and `default` is what the
+        // trackpoint reports before anything is stored. A step that would leave
+        // 0-255 is rejected rather than clamped, so the value just stops moving
+        // at the ends; holding a key does not repeat, so each press is one step.
         //
-        // Every one of those positions must stay in auto_mouse_layer's
-        // excluded-positions in dabao.overlay, or the press deactivates the
-        // layer before its own binding resolves and nothing fires. All the MS_*
-        // codes the behavior accepts are in dt-bindings/zmk/mouse_settings.h.
+        // The four tuned settings, named as the devicetree properties on
+        // &tpoint0 (MS_LOG prints the same names, except that the
+        // press-to-select one comes out as `tp-tp-press-to-select-threshold`,
+        // a typo in the driver's log message). The details below are from the
+        // TrackPoint System Version 4.0 Engineering Specification, section
+        // 2.4.19.3:
+        //
+        //   tp-sensitivity
+        //       Scales the stick force before the transfer function is applied
+        //       (force / 128), so it sets how much force a given pointer speed
+        //       costs. 128 is 1.00x and the power-on default; higher is faster,
+        //       and 255 is 1.99x.
+        //   tp-neg-inertia
+        //       Negative inertia factor. During transient force applications
+        //       the trackpoint adds a term proportional to the change in force
+        //       since the previous sample, then scales the result down by
+        //       1 / (1 + I * (1 - Z0 / Z1)). 0 disables the algorithm, 6 is the
+        //       default. Higher values make the pointer react faster to a
+        //       change in pressure while damping motion at low speed, which is
+        //       IBM's fix for a sluggish start to a flick.
+        //   tp-val6-upper-speed
+        //       Speed ceiling of the transfer function curve: the pointer tops
+        //       out at 22 + 4.3 * value6 mickeys per second, so the default 97
+        //       (x"61") is about 439, and each +5 step adds about 21.5. IBM
+        //       sizes it for the display, so lower it on a small screen and
+        //       raise it for a large one.
+        //   tp-press-to-select-threshold
+        //       How hard a press on the stick counts as a click. Default 8.
+        //       Inert here: the trackpoint runs with disable-clicking in
+        //       dabao_trackpoint.dtsi, so neither MS_TP_PTS_THRESHOLD code is
+        //       bound on this layer.
+        //
+        // MS_LOG logs all four values as a ready-to-paste
+        // `&mouse_ps2_conf = { ... }` block, but only when logging is enabled;
+        // the debug block at the bottom of dabao.conf is commented out, so it
+        // prints nothing as shipped. This repo has no `mouse_ps2_conf` node, so
+        // merge those properties into &tpoint0 in dabao_trackpoint.dtsi to fix
+        // them in firmware -- doing so makes the driver ignore the stored value
+        // on boot and re-apply the devicetree one instead (it logs "because
+        // deviceconfig defines the setting"), which is why all four are left
+        // unset there. MS_RESET deletes the stored values and pushes those
+        // defaults back into the trackpoint.
+        //
+        // Positions 12 and 13 (not the code values of 12 and 13 above) hold the
+        // slow and boost layers. Held, they scale trackpoint motion by 1/2 and
+        // 3/1, so a flick crosses a large display without giving up fine control
+        // the rest of the time.
         mouse_layer {
             display-name = "Mouse";
             bindings = <
             // ╭───────────────┬───────────────┬───────────────┬───────────────┬───────────────╮  ╭───────────────┬───────────────┬───────────────┬───────────────┬───────────────╮
-                  &mms MS_TP_SENSITIVITY_DECR  &mms MS_TP_SENSITIVITY_INCR  &mms MS_TP_NEG_INERTIA_DECR  &mms MS_TP_NEG_INERTIA_INCR  &mms MS_RESET    &trans          &trans          &trans          &trans          &trans
+  &mms MS_TP_SENSITIVITY_DECR  &mms MS_TP_SENSITIVITY_INCR  &mms MS_TP_NEG_INERTIA_DECR  &mms MS_TP_NEG_INERTIA_INCR  &trans    &trans          &trans          &trans          &trans          &trans
             // ├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤  ├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤
-                  &mms MS_TP_VALUE6_DECR  &mms MS_TP_VALUE6_INCR  &mo 7  &mo 6  &trans                   &mkp LCLK      &mkp RCLK        &mkp MCLK         &trans          &trans
+         &mms MS_TP_VALUE6_DECR  &mms MS_TP_VALUE6_INCR   &mo 6          &mo 5           &trans         &mkp LCLK      &mkp RCLK        &mkp MCLK         &trans          &trans
             // ├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤  ├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤
-                         &trans          &trans          &trans          &trans          &trans            &trans          &trans          &trans          &trans          &trans
+                    &mms MS_LOG          &trans          &trans          &trans          &trans            &trans          &trans          &trans          &trans          &mms MS_RESET
             // ╰───────────────┴───────────────┴───────────────┴───────────────┴───────────────╯  ╰───────────────┴───────────────┴───────────────┴───────────────┴───────────────╯
             //                                 ╭───────────────┬───────────────┬───────────────╮  ╭───────────────┬───────────────┬───────────────╮
-                                                &mms MS_LOG  &mo 5  &trans            &trans  &trans  &trans
-            //                                 ╰───────────────┴───────────────┴───────────────╯  ╰───────────────┴───────────────┴───────────────╯
-            >;
-        };
-
-        // Scroll mode. The outer left thumb holds this layer via &mo 5, and it
-        // is listed in the scroller input listener's layers in dabao.overlay,
-        // so while it is held the trackpoint produces wheel events instead of
-        // pointer motion. Every key is &trans, so nothing else changes.
-        scroll_layer {
-            display-name = "Scroll";
-            bindings = <
-            // ╭───────────────┬───────────────┬───────────────┬───────────────┬───────────────╮  ╭───────────────┬───────────────┬───────────────┬───────────────┬───────────────╮
-                         &trans          &trans          &trans          &trans          &trans            &trans          &trans          &trans          &trans          &trans
-            // ├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤  ├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤
-                         &trans          &trans          &trans          &trans          &trans            &trans          &trans          &trans          &trans          &trans
-            // ├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤  ├───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤
-                         &trans          &trans          &trans          &trans          &trans            &trans          &trans          &trans          &trans          &trans
-            // ╰───────────────┴───────────────┴───────────────┴───────────────┴───────────────╯  ╰───────────────┴───────────────┴───────────────┴───────────────┴───────────────╯
-            //                                 ╭───────────────┬───────────────┬───────────────╮  ╭───────────────┬───────────────┬───────────────╮
-                                                &trans          &trans          &trans            &trans          &trans          &trans
+                                                         &trans          &trans          &trans             &trans          &trans          &trans
             //                                 ╰───────────────┴───────────────┴───────────────╯  ╰───────────────┴───────────────┴───────────────╯
             >;
         };
@@ -428,18 +460,19 @@
         // binding at all: dabao.overlay's input_listener carries a layer
         // override for each, scaling trackpoint motion by 3/1 and 1/2. Every
         // key is &trans, so clicks on 16/17/18 keep working while boosting and
-        // scrolling still wins if the scroll thumb is held at the same time.
+        // scrolling still wins if symbols is held at the same time.
         //
         // Position in this file fixes the layer numbers: default 0, symbols 1,
-        // nav 2, misc 3, mouse 4, scroll 5, boost 6, slow 7, then the two
-        // reserved layers. They have to sit after scroll, because the scroller
-        // override in dabao.overlay is keyed to <1 5> and the auto mouse layer
-        // to <4>; declaring a layer above scroll shifts it onto those numbers
-        // and silently turns trackpoint motion into wheel events. Sitting before
-        // the reserved pair keeps boost and slow at 6 and 7 in both the Studio
-        // and non-Studio layer enumerations. Nothing here is verified by the
-        // compiler: a wrong number builds clean and misbehaves at runtime, so
-        // check the generated layer order after any edit to this file.
+        // nav 2, misc 3, mouse 4, boost 5, slow 6, then the two reserved
+        // layers. Boost and slow must stay at 5 and 6, because the mouse
+        // layer's &mo bindings point at them and dabao.overlay keys the boost
+        // and slow overrides to <5> and <6>; inserting or deleting a layer
+        // above them shifts those numbers and silently changes what a held
+        // modifier does. Sitting before the reserved pair keeps boost and slow
+        // at 5 and 6 in both the Studio and non-Studio layer enumerations.
+        // Nothing here is verified by the compiler: a wrong number builds clean
+        // and misbehaves at runtime, so check the generated layer order after
+        // any edit to this file.
         boost_layer {
             display-name = "Boost";
             bindings = <

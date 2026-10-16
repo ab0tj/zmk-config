@@ -22,68 +22,48 @@
         zmk,physical-layout = &dabao_physical_layout;
     };
 
-    /* Auto mouse layer. Activates keymap layer 4 while the trackpoint is
-     * reporting movement, and releases it 400ms after the last movement.
-     * J (16) / K (17) / L (18) click, the mouse layer's left half carries the
-     * trackpoint tuning keys and the speed modifiers, and the outer left thumb
-     * (31) holds scroll mode, so all of those positions are excluded from
-     * dismissing the layer. This matters: a key press that is not excluded
-     * deactivates the layer *before* its own binding is resolved, so the binding
-     * would never fire (see ZMK test
-     * tests/pointing/mouse-move/processors/temp_layer/2a). Any other key press
-     * still dismisses the layer. require-prior-idle-ms keeps it from coming up
-     * mid-typing; set it to 0 to remove that guard.
-     *
-     * The positions excluded here are the ones bound on the mouse layer in
-     * dabao.keymap. Adding a binding there without adding its position here
-     * silently breaks it, and removing the binding without dropping the position
-     * makes a plain letter key stop dismissing the layer.
+    /* The trackpoint feeds a single input listener. There is no auto mouse
+     * layer anymore: keymap layer 4 (mouse) is held with the outer left thumb
+     * (&mo 4 at position 30 on the default layer), so nothing here activates a
+     * layer and the base chain only flips the trackpoint's Y axis, so pushing
+     * the stick up moves the pointer up.
      */
-    auto_mouse_layer: auto_mouse_layer {
-        compatible = "zmk,input-processor-temp-layer";
-        #input-processor-cells = <2>;
-        require-prior-idle-ms = <150>;
-        excluded-positions = <0 1 2 3 4 10 11 12 13 16 17 18 30 31>;
-    };
-
     input_listener: input_listener {
         compatible = "zmk,input-listener";
         device = <&tpoint0>;
-        input-processors = <&zip_xy_transform INPUT_TRANSFORM_Y_INVERT &auto_mouse_layer 4 400>;
+        input-processors = <&zip_xy_transform INPUT_TRANSFORM_Y_INVERT>;
 
-        // Layers 1 (symbols, the existing hold-TAB scroll) and 5 (scroll mode,
-        // held from the outer left thumb on the mouse layer) turn trackpoint
+        // Layer 1 (symbols, held from the inner left thumb) turns trackpoint
         // motion into scrolling.
         // &zip_xy_scaler 1 5 scales both axes by 0.2 before the mapper sends X as
         // horizontal wheel and Y as vertical wheel. Previously vertical was 0.3
         // (&zip_y_scaler 3 10) and horizontal was unscaled.
         scroller {
-            layers = <1 5>;
+            layers = <1>;
             input-processors = <&zip_xy_scaler 1 5 &zip_xy_to_scroll_mapper>;
         };
 
-        // Layers 6 (boost, held from F on the mouse layer) and 7 (slow, held
+        // Layers 5 (boost, held from F on the mouse layer) and 6 (slow, held
         // from its neighbour) scale the pointer instead of redirecting it. Both
         // set process-next on purpose: an override chain replaces the base
-        // chain, so without it the Y transform above would be skipped and
-        // &auto_mouse_layer would stop being refreshed, letting the auto mouse
-        // layer time out 400ms into a long flick and drop the held modifier.
-        // Each chain holds only its scaler, so the base chain still applies its
-        // transform exactly once. The scalers track remainders, so halving keeps
-        // sub-unit precision instead of rounding movement away.
+        // chain, so without it the Y transform above would be skipped and a
+        // boost or slow hold would push the pointer upside down. Each chain
+        // holds only its scaler, so the base chain still applies its transform
+        // exactly once. The scalers track remainders, so halving keeps sub-unit
+        // precision instead of rounding movement away.
         //
         // Order matters, because the first matching override wins unless it sets
-        // process-next: scroller is first, so holding F and boost together in
-        // scroll mode gives ordinary scrolling instead of a fast diagonal. Boost
-        // and slow both set process-next, so holding both composes them to 3/2.
+        // process-next: scroller is first, so holding symbols and boost together
+        // gives ordinary scrolling instead of a fast diagonal. Boost and slow
+        // both set process-next, so holding both composes them to 3/2.
         boost {
-            layers = <6>;
+            layers = <5>;
             process-next;
             input-processors = <&zip_xy_scaler 3 1>;
         };
 
         slow {
-            layers = <7>;
+            layers = <6>;
             process-next;
             input-processors = <&zip_xy_scaler 1 2>;
         };
